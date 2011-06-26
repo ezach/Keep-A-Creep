@@ -1,1 +1,2 @@
 Possibly add in other creature/monster types?
+Specific user's can use tnt, others banned (i.e won't explode if a non-qualified user explodes it.)

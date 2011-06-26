@@ -33,6 +33,7 @@ ehthumbs.db
 Icon?
 Thumbs.db
 
-#  ignore out build directory	#
+#  ignore our build directory	#
 #################################
 build
+dist

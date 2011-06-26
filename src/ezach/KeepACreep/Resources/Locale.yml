@@ -31,3 +31,5 @@ LocaleData:
         English: ' either (t)rue or (f)alse'
     ValueResult:
         English: ' %1% set to %2%.'
+    ValueCheck:
+        English: ' %1% is currently set to %2%.'

@@ -6,7 +6,6 @@
 package ezach.KeepACreep;
 
 // Bukkit imports
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -15,6 +14,7 @@ import org.bukkit.command.CommandSender;
 /**
  * Main command handler for Keep-A-Creep
  * TODO: clean this up as it's VERY VERY messy.
+ * NOTE: i HATE the current state of this class. i WILL refactor it.
  * @author E_Zach
  */
 public class KeepACreepCommand implements CommandExecutor
@@ -22,7 +22,7 @@ public class KeepACreepCommand implements CommandExecutor
     private final KeepACreep _plugin;
 
     private final String[] useageInfo = {
-                                         "Keep-A-Creep Commands:",
+                                         "Commands:",
                                          "    /kac creeper",
                                          "    /kac tnt"
                                         };
@@ -59,43 +59,45 @@ public class KeepACreepCommand implements CommandExecutor
             // NOTE: atm we check each command manually in a giant if else. FIXME! convert commands to enum or something MUCH nicer
             if (split[0].equalsIgnoreCase("creeper"))
             {
-                if (!this.CheckIfHasPermission(player, PermissionNodes.Creeper))
-                {
-                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("NoPermission", Messaging.language)));
-                    return true;
-                }
-                else
-                {
-                    player.sendMessage(Messaging.parse(getFormattedUsageString(creeperUsageInfo)));
-                }
+                sendFormattedUsageString(player, creeperUsageInfo);
             }
-            if (split[0].equalsIgnoreCase("tnt"))
+            else if(split[0].equalsIgnoreCase("tnt"))
             {
-                if (!CheckIfHasPermission(player, PermissionNodes.TNT))
-                {
-                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("NoPermission", Messaging.language)));
-                }
-                else
-                {
-                    player.sendMessage(Messaging.parse(getFormattedUsageString(tntUsageInfo)));
-                }
+                sendFormattedUsageString(player, tntUsageInfo);
+            }
+            else
+            {
+                sendFormattedUsageString(player, useageInfo);
             }
         }
         else if (split.length == 2)
         {
-            if (split[0].equalsIgnoreCase("creeper") && !CheckIfHasPermission(player, PermissionNodes.Creeper))
-                player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("NoPermission", Messaging.language)));
-            else if(split[0].equalsIgnoreCase("tnt") && !CheckIfHasPermission(player, PermissionNodes.TNT))
-                player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("NoPermission", Messaging.language)));
-            else if((split[0].equalsIgnoreCase("creeper") && (split[1].equalsIgnoreCase("explode") || split[1].equalsIgnoreCase("keep") || split[1].equalsIgnoreCase("spawn") || split[1].equalsIgnoreCase("explode")))
+            // our current value
+            if((split[0].equalsIgnoreCase("creeper") && (split[1].equalsIgnoreCase("explode") || split[1].equalsIgnoreCase("keep") || split[1].equalsIgnoreCase("spawn")))
                 || (split[0].equalsIgnoreCase("tnt") && (split[1].equalsIgnoreCase("explode"))) )
-                player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + " /kac "+split[0]+" "+split[1]+" [t/f]"));
+            {
+                // is this a creeper command?
+                if (split[0].equalsIgnoreCase("creeper"))
+                {
+                    if (split[1].equalsIgnoreCase("explode"))
+                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueCheck", Messaging.language).replace("%1%", "ExplodeCreepers").replace("%2%", _plugin.settings.getString("Flags.ExplodeCreepers"))));
+                    if (split[1].equalsIgnoreCase("keep"))
+                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueCheck", Messaging.language).replace("%1%", "KeepCreepers").replace("%2%", _plugin.settings.getString("Flags.KeepCreepers"))));
+                    if (split[1].equalsIgnoreCase("spawn"))
+                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueCheck", Messaging.language).replace("%1%", "SpawnCreepers").replace("%2%", _plugin.settings.getString("Flags.SpawnCreepers"))));
+                }
+                // then we must be a tnt command (specifically the explode as there isn't any others.)
+                else
+                {
+                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueCheck", Messaging.language).replace("%1%", "ExplodeTNT").replace("%2%", _plugin.settings.getString("Flags.ExplodeTNT"))));
+                }
+            }
             else if(split[0].equalsIgnoreCase("creeper"))
-                player.sendMessage(Messaging.parse(getFormattedUsageString(creeperUsageInfo)));
+                sendFormattedUsageString(player, creeperUsageInfo);
             else if(split[0].equalsIgnoreCase("tnt"))
-                player.sendMessage(Messaging.parse(getFormattedUsageString(tntUsageInfo)));
+                sendFormattedUsageString(player, tntUsageInfo);
             else
-                player.sendMessage(Messaging.parse(getFormattedUsageString(useageInfo)));
+                sendFormattedUsageString(player, useageInfo);
 
         }
         else if (split.length == 3)
@@ -103,50 +105,97 @@ public class KeepACreepCommand implements CommandExecutor
             
             if (split[0].equalsIgnoreCase("creeper"))
             {
-                if (!CheckIfHasPermission(player, PermissionNodes.TNT))
+                if(split[1].equalsIgnoreCase("explode"))
                 {
-                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("NoPermission", Messaging.language)));
-                }
-                String newValue = split[1].toLowerCase();
+                    String newValue = this.getValue(split[2].toLowerCase());
 
-                if (!this.getValue(newValue).equals(""))
+                    if (!CheckIfHasPermission(player, PermissionNodes.ExplodeCreeper))
+                    {
+                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("NoPermission", Messaging.language)));
+                    }
+                    else if(!newValue.equals(""))
+                    {
+                        setProperty("Flags.ExplodeCreepers", newValue);
+                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueResult", Messaging.language).replace("%1%", split[0].toLowerCase()).replace("%2%", newValue)));
+                    }
+                    else
+                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueHint", Messaging.language)));
+                }
+                else if(split[1].equalsIgnoreCase("spawn"))
                 {
-                    setProperty("Flags.ExplodeCreepers", newValue);
-                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueResult", Messaging.language).replace("%1%", split[0].toLowerCase()).replace("%2%", newValue)));
+                    String newValue = this.getValue(split[2].toLowerCase());
+
+                    if (!CheckIfHasPermission(player, PermissionNodes.SpawnCreeper))
+                    {
+                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("NoPermission", Messaging.language)));
+                    }
+                    else if(!newValue.equals(""))
+                    {
+                        setProperty("Flags.SpawnCreepers", newValue);
+                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueResult", Messaging.language).replace("%1%", split[0].toLowerCase()).replace("%2%", newValue)));
+                    }
+                    else
+                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueHint", Messaging.language)));
+                }
+                else if(split[1].equalsIgnoreCase("keep"))
+                {
+                    String newValue = this.getValue(split[2].toLowerCase());
+
+                    if (!CheckIfHasPermission(player, PermissionNodes.KeepCreeper))
+                    {
+                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("NoPermission", Messaging.language)));
+                    }
+                    else if(!newValue.equals(""))
+                    {
+                        setProperty("Flags.KeepCreepers", newValue);
+                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueResult", Messaging.language).replace("%1%", split[0].toLowerCase()).replace("%2%", newValue)));
+                    }
+                    else
+                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueHint", Messaging.language)));
                 }
                 else
-                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueHint", Messaging.language)));
-                //return true;
+                {
+                    sendFormattedUsageString(player, creeperUsageInfo);
+                }
             }
             
             if (split[0].equalsIgnoreCase("tnt"))
             {
-                if (!CheckIfHasPermission(player, PermissionNodes.TNT))
+                if (split[1].equalsIgnoreCase("explode"))
                 {
-                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("NoPermission", Messaging.language)));
-                }
-
-                String newValue = split[1].toLowerCase();
-
-                if (!this.getValue(newValue).equals(""))
-                {
-                    setProperty("Flags.ExplodeTNT", newValue);
-                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueResult", Messaging.language).replace("%1%", split[0].toLowerCase()).replace("%2%", newValue)));
+                    String newValue = this.getValue(split[2].toLowerCase());
+                    
+                    if (!CheckIfHasPermission(player, PermissionNodes.ExplodeTNT))
+                    {
+                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("NoPermission", Messaging.language)));
+                    }
+                    else if (!newValue.equals(""))
+                    {
+                        setProperty("Flags.ExplodeTNT", newValue);
+                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueResult", Messaging.language).replace("%1%", split[0].toLowerCase()).replace("%2%", newValue)));
+                    }
+                    else
+                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueHint", Messaging.language)));
                 }
                 else
-                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueHint", Messaging.language)));
+                {
+                    sendFormattedUsageString(player, tntUsageInfo);
+                }
             }
         }
         else
         {
-            player.sendMessage(Messaging.parse(getFormattedUsageString(useageInfo)));
+            sendFormattedUsageString(player, useageInfo);
         }
         return true;
     }
 
     private void setProperty(String Key, String value)
     {
-        _plugin.settings.setProperty(Key, value);
+        boolean boolValue = false;
+        if (value.equals("true"))
+            boolValue = true;
+        _plugin.settings.setProperty(Key, boolValue);
         _plugin.loadFlags();
         _plugin.settings.save();
     }
@@ -178,15 +227,14 @@ public class KeepACreepCommand implements CommandExecutor
         return false;
     }
 
-    private String getFormattedUsageString(String[] usageArray)
+    private void sendFormattedUsageString(Player player, String[] usageArray)
     {
-        StringBuilder fullString = new StringBuilder(Messaging.msgPrefix).append(Messaging.msgColour).append(" ");
+        StringBuilder fullString = new StringBuilder(Messaging.msgPrefix);
         for (String i : usageArray)
-            fullString.append(i).append("\r\n");
-        if (usageArray.length > 0)
-            fullString.setLength(fullString.length()-2);
-        
-        return fullString.toString();
+        {
+            player.sendMessage(Messaging.parse(fullString.append(Messaging.msgColour).append(" ").append(i).toString()));
+            fullString.setLength(0);
+        }
     }
 
     /**

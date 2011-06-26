@@ -83,6 +83,11 @@ public class KeepACreep extends JavaPlugin
                 return;
             }
         }
+        else
+        {
+            // -_- this is here as the default writer doesn't re-load our header.
+            settings.setHeader(settings.loadTemplateHeader("Config.yml"));
+        }
 
         getCommand("kac").setExecutor(new KeepACreepCommand(this));
 
@@ -119,7 +124,6 @@ public class KeepACreep extends JavaPlugin
         if (!dataFlags.instance().UsePermissions)
         {
             log.log(Level.INFO , Messaging.parse(new StringBuilder(Messaging.logPrefix).append(Locale.instance().getLocalisedString("PermissionsNotUse", Messaging.language)).toString()));
-            return;
         }
 
         Plugin permissionsPlugin = this.getServer().getPluginManager().getPlugin("Permissions");
@@ -132,7 +136,7 @@ public class KeepACreep extends JavaPlugin
                 log.log(Level.INFO , Messaging.parse(new StringBuilder(Messaging.logPrefix).append(Locale.instance().getLocalisedString("PermissionsSuccess", Messaging.language)).toString()));
 
             }
-            else
+            else if (dataFlags.instance().UsePermissions)
             {
                 log.log(Level.INFO, Messaging.parse(new StringBuilder(Messaging.logPrefix).append(Locale.instance().getLocalisedString("PermissionsFail", Messaging.language)).toString()));
             }
@@ -151,5 +155,6 @@ public class KeepACreep extends JavaPlugin
         dataFlags.instance().keepCreepers = settings.getBoolean("Flags.KeepCreepers", false);
         dataFlags.instance().spawnCreepers = settings.getBoolean("Flags.SpawnCreepers", true);
         dataFlags.instance().UsePermissions = settings.getBoolean("UsePermissions", false);
+        dataFlags.instance().UseInGameCommands = settings.getBoolean("UseInGameCommands", false);
     }
 }

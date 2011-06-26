@@ -21,6 +21,7 @@ public class dataFlags
     boolean spawnCreepers = true;
 
     boolean UsePermissions = false;
+    boolean UseInGameCommands = false;
 
     private dataFlags()
     {

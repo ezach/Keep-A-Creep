@@ -17,4 +17,5 @@ public class PermissionNodes
     public static final String SpawnCreeper = "Keep-A-Creep.Creeper.Spawn";
     public static final String KeepCreeper = "Keep-A-Creep.Creeper.Keep";
     public static final String ExplodeTNT = "Keep-A-Creep.TNT.Explode";
+    public static final String Reload = "Keep-A-Creep.Reload";
 }

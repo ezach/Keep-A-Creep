@@ -31,6 +31,8 @@ Config~yml|HEADER:
     - '# the flags are what is used to control the Monsters.'
     - '# they are currently set to the game defaults (how they currently work.)'
     - '# set these to either true or false'
+    - '# the UseInGameCommands sets the abillity to set the values of the config in-game (reason for permissions.)'
+    - '# by default this is set to default, however the /kac reload command is avaliable even if this is set to false'
     - '# DO NOT CHANGE THE VERSION NUMBER. this is used for future automatic config Upgrades.'
     - '# (thats if the config actually changes.)\r\n'
 
@@ -47,4 +49,5 @@ Config~yml:
         ExplodeTNT: true
 
     UsePermissions: true
+    UseInGameCommands: false
     Version: 1.0

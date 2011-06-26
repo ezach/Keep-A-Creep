@@ -1,0 +1,36 @@
+# all Yml File Templates
+# NOTE: each indent is 4 spaces
+# NOTE: please use ~ instead of . for file names (yaml uses .)
+#File~Name:
+#    Contents:
+#        ofTheFile:
+#            - like: normal
+#
+# TODO: versioned template upgrades
+#File~Name|1~0:
+#    Contents:
+#        ofTheFile:
+#            - new: VALUE|Contents.ofTheFile.like
+#
+# Templated headers
+#File~Name|HEADER
+#    - '# text to put in header'
+#    - '# which supports multi\n#lines'
+
+# our header
+Config~yml|HEADER:
+    - '# long string'
+    - '# that we will break up over multiple lines'
+    - '# to see if we can just\r\n# read in newlines.'
+
+# the default template
+Config~yml:
+    Messages:
+        Prefix: '&4[&6%NAME%&4]&f'
+        TextColour: 2
+    Flags:
+        SpawnCreepers: true
+        ExplodeCreepers: true
+        KeepCreepers: false
+        ExplodeTNT: true
+    Version: 1.0

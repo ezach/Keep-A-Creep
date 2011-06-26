@@ -1,0 +1,15 @@
+name: Keep-A-Creep
+description: Creeper Manager
+main: ezach.KeepACreep.KeepACreep
+version: 1.0
+author: e_zach
+# kept here for template
+authors: [e_zach]
+# add any plugins that we may need here.
+depend: [Permissions]
+
+commands:
+    kac:
+        description: 
+        usage: '/kac creeper t/f or /kac tnt t/f'
+        aliases: [keepacreep, keep_a_creep] # others?

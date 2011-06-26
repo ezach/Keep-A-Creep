@@ -20,6 +20,8 @@ public class dataFlags
     boolean keepCreepers = false;
     boolean spawnCreepers = true;
 
+    boolean UsePermissions = false;
+
     private dataFlags()
     {
         // init me.

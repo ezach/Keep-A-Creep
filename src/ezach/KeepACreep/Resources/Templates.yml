@@ -19,9 +19,20 @@
 
 # our header
 Config~yml|HEADER:
-    - '# long string'
-    - '# that we will break up over multiple lines'
-    - '# to see if we can just\r\n# read in newlines.'
+    - '# Keep-A-Creep v1.0'
+    - '# Use to manage our frendly mate the creeper :)'
+    - '# USAGE:'
+    - '# set the "UsePermissions" node to true if you want to'
+    - '# use permissions to handle the in-game commands.'
+    - '# the Prefix is the format of the start of any messages from Keep-A-Creep'
+    - '# the TextColour is the colour of the message following the prefix'
+    - '# language is what language all text should be in. currently there is only English.'
+    - '# if someone would like to translate for me, that would be awsome :)'
+    - '# the flags are what is used to control the Monsters.'
+    - '# they are currently set to the game defaults (how they currently work.)'
+    - '# set these to either true or false'
+    - '# DO NOT CHANGE THE VERSION NUMBER. this is used for future automatic config Upgrades.'
+    - '# (thats if the config actually changes.)\r\n'
 
 # the default template
 Config~yml:
@@ -34,4 +45,6 @@ Config~yml:
         ExplodeCreepers: true
         KeepCreepers: false
         ExplodeTNT: true
+
+    UsePermissions: true
     Version: 1.0

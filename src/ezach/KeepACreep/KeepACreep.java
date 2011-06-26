@@ -93,27 +93,35 @@ public class KeepACreep extends JavaPlugin
         // EXAMPLE: Custom code, here we just output some info so we can check all is well
         log.log( Level.INFO, Messaging.parse(new StringBuilder(Messaging.logPrefix).append(Locale.instance().getLocalisedString("EnablePlugin", Messaging.language).replace("%VERSION%", this.getDescription().getVersion())).toString()));
         
-        // attempt to hook into permissions
-        setupPermissions();
-
         // load in and set our data flags from the config.
         loadFlags();
+        
+        // attempt to hook into permissions
+        setupPermissions();
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args)
-    {
-
-        if(cmd.getName().equalsIgnoreCase("basic"))
-        {
-            //doSomething
-            return true;
-        }
-        return false;
-    }
+    // NOTE: we don't use this, so i've commented it out for now. may impliment this for aliases at some point
+//    @Override
+//    public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args)
+//    {
+//
+//        if(cmd.getName().equalsIgnoreCase("basic"))
+//        {
+//            //doSomething
+//            return true;
+//        }
+//        return false;
+//    }
 
     private void setupPermissions()
     {
+        // if we don't want to hook into permissions, then abort
+        if (!dataFlags.instance().UsePermissions)
+        {
+            log.log(Level.INFO , Messaging.parse(new StringBuilder(Messaging.logPrefix).append(Locale.instance().getLocalisedString("PermissionsNotUse", Messaging.language)).toString()));
+            return;
+        }
+
         Plugin permissionsPlugin = this.getServer().getPluginManager().getPlugin("Permissions");
 
         if (permissionHandler == null)
@@ -142,5 +150,6 @@ public class KeepACreep extends JavaPlugin
         dataFlags.instance().explodeTNT = settings.getBoolean("Flags.ExplodeTNT", true);
         dataFlags.instance().keepCreepers = settings.getBoolean("Flags.KeepCreepers", false);
         dataFlags.instance().spawnCreepers = settings.getBoolean("Flags.SpawnCreepers", true);
+        dataFlags.instance().UsePermissions = settings.getBoolean("UsePermissions", false);
     }
 }

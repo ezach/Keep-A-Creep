@@ -23,6 +23,8 @@ LocaleData:
         English: ' Unable to Hook Into Permissions!'
     PermissionsSuccess:
         English: ' Hooked Into Permissions!'
+    PermissionsNotUse:
+        English: ' Not Using Permissions!'
     NoPermission:
         English: ' You do not have permission to use this command.'
     ValueHint:

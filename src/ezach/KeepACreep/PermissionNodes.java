@@ -13,6 +13,10 @@ package ezach.KeepACreep;
 public class PermissionNodes
 {
     // yes i know these vars are capitalised.
-    public static final String EnableCreeper = "Keep-A-Creep.creeper";
-    public static final String EnableTNT = "Keep-A-Creep.tnt";
+    public static final String Creeper = "Keep-A-Creep.Creeper";
+    public static final String ExplodeCreeper = "Keep-A-Creep.Creeper.Explode";
+    public static final String SpawnCreeper = "Keep-A-Creep.Creeper.Spawn";
+    public static final String KeepCreeper = "Keep-A-Creep.Creeper.Keep";
+    public static final String TNT = "Keep-A-Creep.TNT";
+    public static final String EnableTNT = "Keep-A-Creep.TNT.Enable";
 }

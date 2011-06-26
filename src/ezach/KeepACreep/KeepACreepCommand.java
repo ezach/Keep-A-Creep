@@ -47,7 +47,7 @@ public class KeepACreepCommand implements CommandExecutor {
             {
                 if (!KeepACreep.permissionHandler.has(player, PermissionNodes.EnableCreeper))
                 {
-                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + " You do not have permission to use this command."));
+                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("NoPermission", Messaging.language)));
                     return true;
                 }
 
@@ -61,17 +61,17 @@ public class KeepACreepCommand implements CommandExecutor {
                 if (newValue.equals("true") || newValue.equals("false"))
                 {
                     setProperty("Flags.ExplodeCreepers", newValue);
-                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + " " + split[0].toLowerCase()+" set to "+newValue+"."));
+                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueResult", Messaging.language).replace("%1%", split[0].toLowerCase()).replace("%2%", newValue)));
                 }
                 else
-                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + " either (t)rue or (f)alse"));
+                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueHint", Messaging.language)));
                 return true;
             }
             else if (split[0].equalsIgnoreCase("tnt"))
             {
                 if (!KeepACreep.permissionHandler.has(player, PermissionNodes.EnableTNT))
                 {
-                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + " You do not have permission to use this command."));
+                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("NoPermission", Messaging.language)));
                 }
 
                 String newValue = split[1].toLowerCase();
@@ -84,10 +84,10 @@ public class KeepACreepCommand implements CommandExecutor {
                 if (newValue.equals("true") || newValue.equals("false"))
                 {
                     setProperty("Flags.ExplodeTNT", newValue);
-                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + split[0].toLowerCase()+" set to "+newValue+"."));
+                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueResult", Messaging.language).replace("%1%", split[0].toLowerCase()).replace("%2%", newValue)));
                 }
                 else
-                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + " either (t)rue or (f)alse"));
+                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueHint", Messaging.language)));
                 return true;
             }
         }

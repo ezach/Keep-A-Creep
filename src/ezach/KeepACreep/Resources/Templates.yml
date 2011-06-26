@@ -28,6 +28,7 @@ Config~yml:
     Messages:
         Prefix: '&4[&6%NAME%&4]&f'
         TextColour: 2
+        Language: English
     Flags:
         SpawnCreepers: true
         ExplodeCreepers: true

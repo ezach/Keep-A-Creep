@@ -59,6 +59,8 @@ public class KeepACreep extends JavaPlugin
 
         // Set the Plugin Name for any console Text.
         Messaging.pluginName = this.getDescription().getName();
+
+        Locale.instance().setLocalFile("/ezach/KeepACreep/Resources/Locale.yml");
         
         // first check our settings file to make sure we have the correct version,
         // and that we actually have the correct version (haven't just upgraded)
@@ -66,14 +68,16 @@ public class KeepACreep extends JavaPlugin
             settings.writeTemplate();
         else if (!settings.getString("Version", "UNKNOWN").equalsIgnoreCase(settingsVersion))
         {
-            log.log(Level.INFO,  Messaging.parse(new StringBuilder(Messaging.logPrefix).append(" Upgrading Config from Version ").append(settings.getString("Version", "UNKNOWN")).toString()));
+            // attempt to set our locale before upgrading
+            Messaging.language = settings.getString("Messages.Language", "English");
+            log.log(Level.INFO,  Messaging.parse(new StringBuilder(Messaging.logPrefix).append(Locale.instance().getLocalisedString("UpgradeConfigText", Messaging.language)).append(settings.getString("Version", "UNKNOWN")).toString()));
             if (settings.upgrade(settings.getString("Version", "UNKNOWN")))
             {
-                log.log(Level.INFO,  Messaging.parse(new StringBuilder(Messaging.logPrefix).append(" Sucessfully Upgraded.").toString()));
+                log.log(Level.INFO,  Messaging.parse(new StringBuilder(Messaging.logPrefix).append(Locale.instance().getLocalisedString("UpgradeConfigSuccess", Messaging.language)).toString()));
             }
             else
             {
-                log.log(Level.INFO,  Messaging.parse(new StringBuilder(Messaging.logPrefix).append(" Failed To Upgrade Config.").toString()));
+                log.log(Level.INFO,  Messaging.parse(new StringBuilder(Messaging.logPrefix).append(Locale.instance().getLocalisedString("UpgradeConfigFail", Messaging.language)).toString()));
                 // if we failed to upgrade the plugin, then kill the plugin
                 this.setEnabled(false);
                 return;
@@ -87,7 +91,7 @@ public class KeepACreep extends JavaPlugin
         Messaging.msgColour = "&"+settings.getString("Messages.TextColour", "f");
 
         // EXAMPLE: Custom code, here we just output some info so we can check all is well
-        log.log( Level.INFO, Messaging.parse(new StringBuilder(Messaging.logPrefix).append(" version ").append(this.getDescription().getVersion()).append(" is enabled!").toString()));
+        log.log( Level.INFO, Messaging.parse(new StringBuilder(Messaging.logPrefix).append(Locale.instance().getLocalisedString("EnablePlugin", Messaging.language).replace("%VERSION%", this.getDescription().getVersion())).toString()));
         
         // attempt to hook into permissions
         setupPermissions();
@@ -117,12 +121,12 @@ public class KeepACreep extends JavaPlugin
             if (permissionsPlugin != null)
             {
                 permissionHandler = ((Permissions) permissionsPlugin).getHandler();
-                log.log(Level.INFO , Messaging.parse(new StringBuilder(Messaging.logPrefix).append(" Hooked Into Permissions!").toString()));
+                log.log(Level.INFO , Messaging.parse(new StringBuilder(Messaging.logPrefix).append(Locale.instance().getLocalisedString("PermissionsSuccess", Messaging.language)).toString()));
 
             }
             else
             {
-                log.log(Level.INFO, Messaging.parse(new StringBuilder(Messaging.logPrefix).append(" Unable to Hook Into Permissions!").toString()));
+                log.log(Level.INFO, Messaging.parse(new StringBuilder(Messaging.logPrefix).append(Locale.instance().getLocalisedString("PermissionsFail", Messaging.language)).toString()));
             }
         }
     }

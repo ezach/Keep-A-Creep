@@ -14,14 +14,7 @@ public class Messaging
     static String msgColour = "&2";
     static String logPrefix = "[%NAME%]"; // Prefix to go in front of all log entries
     static String msgPrefix = "&4[&6%NAME%&4]&f";
-    // TODO: move me to the templates.yml
-    static String[] header = {
-                            "#------ Keep-A-Creep ------",
-                            "#-------- Ver 1.0 ---------",
-                            "# this is the header",
-                            "# i will fill it with useful info.",
-                            "# at somepoint anyway",
-                            "#--------------------------"};
+    static String language = "English";
     
     /**
      * Parses the original string against color specific codes. This one converts &[code] to \u00A7[code]

@@ -1,0 +1,31 @@
+# Locale Template.
+#DefaultLanguage: languageToUseByDefault
+#LocaleData:
+#    LocaleID:
+#        Language: 'localised String'
+#        Language2: 'ze localized ztring'
+#        Language3: 'bonjour bla ble blooo'
+# TODO: other languages
+DefaultLanguage: English
+
+LocaleData:
+    UpgradeConfigText:
+        English: ' Upgrading Config from Version '
+    UpgradeConfigSuccess:
+        English: ' Sucessfully Upgraded.'
+    UpgradeConfigFail:
+        English: ' Failed To Upgrade Config.'
+    DisablePlugin:
+        English: ' is Disabled!'
+    EnablePlugin:
+        English: ' Version %VERSION% is enabled!'
+    PermissionsFail:
+        English: ' Unable to Hook Into Permissions!'
+    PermissionsSuccess:
+        English: ' Hooked Into Permissions!'
+    NoPermission:
+        English: ' You do not have permission to use this command.'
+    ValueHint:
+        English: ' either (t)rue or (f)alse'
+    ValueResult:
+        English: ' %1% set to %2%.'

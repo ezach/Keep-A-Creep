@@ -52,7 +52,7 @@ public final class YMLFile extends Configuration
     private String header = null;
     private boolean readOnly = false;
 
-    private final String templateFile = "/ezach/KeepACreep/Templates.yml";
+    private final String templateFile = "/ezach/KeepACreep/Resources/Templates.yml";
 
     public YMLFile(File file, boolean create, boolean useTemplates)
     {
@@ -543,7 +543,7 @@ public final class YMLFile extends Configuration
             return true;
         }
         // if the template for that version doesn't exist chuck an error msg.
-        logMsg(Level.INFO, "FAILED: '" + file.getName()+"' doesn't Have an upgrade template for v"+currentVersion);
+        logMsg(Level.INFO, "'" + file.getName()+"' doesn't Have an upgrade template for v"+currentVersion);
         return false;
     }
 }

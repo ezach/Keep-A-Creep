@@ -1,2 +1,4 @@
+add server command support.
+fix current command code to new method described in the header of the command.java
 Possibly add in other creature/monster types?
 Specific user's can use tnt, others banned (i.e won't explode if a non-qualified user explodes it.)

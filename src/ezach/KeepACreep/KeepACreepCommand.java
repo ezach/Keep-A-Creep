@@ -17,6 +17,21 @@ import org.bukkit.command.CommandSender;
  * NOTE: i HATE the current state of this class. i WILL refactor it.
  * @author E_Zach
  */
+/*
+ * FIX:
+ * the method i will use to impliment commands will be have a .yml file with the command path structure
+ * e.g. (ALL LOWER CASE!)
+ * root: 0
+ *   subCommand: 1
+ *     subsubcommand:2 # this command will have a length of 2
+ *     subsubcommand:2|VALUE=4 # this will be 3 but if 2, it will do number 2
+ *   subCommand: 3
+ *     subsubcommand:2
+ *   BAD: 0
+ *
+ * then we just have a case statement in the command which chooses the correct handler function, passing in the args.
+ * then all will be well
+ */
 public class KeepACreepCommand implements CommandExecutor
 {
     private final KeepACreep _plugin;

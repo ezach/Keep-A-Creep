@@ -41,9 +41,12 @@ public class KeepACreep extends JavaPlugin
     // as we are unable to define custom items within the Plugin.yml we stick the version of the config here.
     public final String settingsVersion = "1.0";
     public YMLFile settings = new YMLFile(new File(pFolder.getPath(), "Config.yml"), true, true);
+    static KeepACreep _instance = null;
     
     public void onDisable()
     {
+        // there shouldn't be an instance soon as we're shutting down.
+        _instance = null;
         // let the user know we've been disabled.
        log.log(Level.INFO, Messaging.parse(new StringBuilder(Messaging.logPrefix).append(" is Disabled!").toString() ));
        // NOTE: we do NOT save out settings here. (residence bug. =P)
@@ -51,6 +54,9 @@ public class KeepACreep extends JavaPlugin
 
     public void onEnable()
     {
+        // allow static access to the plugin.
+        _instance = this;
+
         // Register our events
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvent(Event.Type.EXPLOSION_PRIME, entityListener, Priority.Highest, this);
@@ -156,5 +162,10 @@ public class KeepACreep extends JavaPlugin
         dataFlags.instance().spawnCreepers = settings.getBoolean("Flags.SpawnCreepers", true);
         dataFlags.instance().UsePermissions = settings.getBoolean("UsePermissions", false);
         dataFlags.instance().UseInGameCommands = settings.getBoolean("UseInGameCommands", false);
+    }
+
+    static KeepACreep getMainInstance()
+    {
+        return _instance;
     }
 }

@@ -9,6 +9,7 @@ package ezach.KeepACreep;
  *
  * @author E_Zach
  */
+// OOD - Removed with new command system. (may be used when attaching rights to users though.)
 // Basically a small class to store constant strings used to lookup permission nodes
 public class PermissionNodes
 {

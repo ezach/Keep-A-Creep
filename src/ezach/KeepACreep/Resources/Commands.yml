@@ -1,0 +1,107 @@
+## YAML Template.
+# NOTE: root is the main command. (should we change this to the actual base command?)
+# NOTE: keep all commands lower case.
+# Key:
+# Main: - if this command meets all requirements, then this number actually runs the command.
+# Sub: - list of sub commands which hop off this command: /cmd main sub value
+# Info: - command to run if this is not a full command (info msg or similar)
+# PNode: - the node(s) this command requires to pass.
+# PError: - the command for when we fail the permission test.
+# Args: - number of arguments we're expecting. <0 means an instant fail
+# OptArgs: - extra number of possible optional args this command may have.
+# Fail: - what to do if the command generally fails (incorrect subcommands, arg length etc.) WE NEED THIS! will default to 0.
+# TODO: others.
+# TODO: need some kind of permission tree.
+
+kac:
+    Sub:
+        - reload
+        - creeper
+        - tnt
+    Info: 0
+    Fail: 0
+
+# reload sub command.
+kac~reload:
+    Main: 16
+    Args: 0
+    PError: 20
+    PNode: Keep-A-Creep.Reload
+    Fail: 0
+
+# Now the creeper sub commands
+kac~creeper:
+    Sub:
+       - explode
+       - spawn
+       - keep
+       #- damagearea # these don't exist yet.
+       #- damageplayer
+    # TODO: figure out how to do partial permission checks (have && and || as if it's an if statement? also ()'s)
+    PError: 20
+    #PNode: Keep-A-Creep.Creeper
+    Info: 2
+    Fail: 2
+
+# set creep explode
+kac~creeper~explode:
+    Main: 10
+    Args: 1
+    Fail: 21
+    Info: 4
+    PError: 20
+    PNode: Keep-A-Creep.Creeper.Explode
+
+#set creep spawn
+kac~creeper~spawn:
+    Main: 11
+    Args: 1
+    Fail: 21
+    Info: 4
+    PError: 20
+    PNode: Keep-A-Creep.Creeper.Spawn
+
+# set creep keep
+kac~creeper~keep:
+    Main: 12
+    Args: 1
+    Fail: 21
+    Info: 4
+    PError: 20
+    PNode: Keep-A-Creep.Creeper.Keep
+
+# set creep keep
+kac~creeper~damagearea:
+    Main: 13
+    Args: 1
+    Fail: 21
+    Info: 4
+    PError: 20
+    PNode: Keep-A-Creep.Creeper.DamageArea
+
+# set creep keep
+kac~creeper~damageplayer:
+    Main: 14
+    Args: 1
+    Fail: 21
+    Info: 4
+    PError: 20
+    PNode: Keep-A-Creep.Creeper.DamagePlayer
+
+# TNT sub command
+kac~tnt:
+    Sub:
+        - explode
+    Info: 3
+    Fail: 3
+    PError: 20
+    #PNode: Keep-A-Creep.TNT
+
+# set tnt explode
+kac~tnt~explode:
+    Main: 15
+    Args: 1
+    Fail: 21
+    Info: 4
+    PError: 20
+    PNode: Keep-A-Creep.TNT.Explode

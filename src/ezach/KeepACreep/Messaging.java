@@ -5,6 +5,8 @@ package ezach.KeepACreep;
  * @author E_Zach
  */
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+import org.bukkit.command.CommandSender;
 
 public class Messaging
 {
@@ -50,5 +52,35 @@ public class Messaging
     public static String colorize(String original) {
     //Removed the weird character
 	return original.replace("<black>", "\u00A70").replace("<navy>", "\u00A71").replace("<green>", "\u00A72").replace("<teal>", "\u00A73").replace("<red>", "\u00A74").replace("<purple>", "\u00A75").replace("<gold>", "\u00A76").replace("<silver>", "\u00A77").replace("<gray>", "\u00A78").replace("<blue>", "\u00A79").replace("<lime>", "\u00A7a").replace("<aqua>", "\u00A7b").replace("<rose>", "\u00A7c").replace("<pink>", "\u00A7d").replace("<yellow>", "\u00A7e").replace("<white>", "\u00A7f");
+    }
+
+    public static void sendColouredPlayerMessage(Player player, String msg)
+    {
+        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + msg));
+    }
+
+    public static void sendColouredLocalisedPlayerMessage(Player player, String localeID)
+    {
+        sendColouredLocalisedPlayerMessage(player, localeID, Messaging.language);
+    }
+
+    public static void sendColouredLocalisedPlayerMessage(Player player, String localeID, String language)
+    {
+        sendColouredPlayerMessage(player, Locale.instance().getLocalisedString(localeID, language));
+    }
+
+    public static void sendServerMessage(CommandSender server, String msg)
+    {
+        server.sendMessage(Messaging.msgPrefix + Messaging.msgColour + msg);
+    }
+
+    public static void sendLocalisedServerMessage(CommandSender server, String localeID)
+    {
+        sendLocalisedServerMessage(server, localeID, Messaging.language);
+    }
+
+    public static void sendLocalisedServerMessage(CommandSender server, String localeID, String language)
+    {
+        sendServerMessage(server, Locale.instance().getLocalisedString(localeID, language));
     }
 }

@@ -5,6 +5,10 @@
 
 package ezach.KeepACreep;
 
+// System Includes
+import java.util.logging.Level;
+import java.util.HashMap;
+
 // Bukkit imports
 import org.bukkit.entity.Player;
 import org.bukkit.command.Command;
@@ -13,60 +17,47 @@ import org.bukkit.command.CommandSender;
 
 /**
  * Main command handler for Keep-A-Creep
- * TODO: clean this up as it's VERY VERY messy.
- * NOTE: i HATE the current state of this class. i WILL refactor it.
+ * TODO: group bool commands into one class, similar to the value query command class.
  * @author E_Zach
- */
-/*
- * FIX:
- * the method i will use to impliment commands will be have a .yml file with the command path structure
- * e.g. (ALL LOWER CASE!)
- * root: 0
- *   subCommand: 1
- *     subsubcommand:2 # this command will have a length of 2
- *     subsubcommand:2|VALUE=4 # this will be 3 but if 2, it will do number 2
- *   subCommand: 3
- *     subsubcommand:2
- *   BAD: 0
- *
- * then we just have a case statement in the command which chooses the correct handler function, passing in the args.
- * then all will be well
  */
 public class KeepACreepCommand implements CommandExecutor
 {
     private final KeepACreep _plugin;
-
-    private final String[] useageInfo = {
-                                         "Commands:",
-                                         "    /kac reload",
-                                         "    /kac creeper",
-                                         "    /kac tnt"
-                                        };
-
-    private final String[] reloadOnlyUseageInfo = {
-                                         "Commands:",
-                                         "    /kac reload"
-                                        };
-    private final String[] creeperUsageInfo = {
-                                                "Creeper Specific Commands:",
-                                                "    /kac creeper explode [t/f]",
-                                                "    /kac creeper spawn [t/f]",
-                                                "    /kac creeper keep [t/f]"
-                                              };
-    private final String[] tntUsageInfo = {
-                                            "TNT Specific Commands:",
-                                            "    /kac tnt explode [t/f]"
-                                          };
+    private HashMap<Integer, ExecutableCommand> commandMap = new HashMap<Integer, ExecutableCommand>();
+    private CommandParser mainParser = new CommandParser("/ezach/KeepACreep/Resources/Commands.yml");
 
     public KeepACreepCommand(KeepACreep plugin)
     {
         _plugin = plugin;
+
+        // add all our commands
+        // info commands first
+        commandMap.put(0, new CmdMainHelp()); // main commandList
+        commandMap.put(1, new CmdReloadOnlyHelp()); // reload only
+        commandMap.put(2, new CmdCreeperHelp()); // Creeper info
+        commandMap.put(3, new CmdTntHelp()); // Tnt info
+        commandMap.put(4, new CmdBoolInfo()); // bool command info
+        // now actual commands
+        commandMap.put(10, new CmdCreeperExplode()); // Creeper Explode
+        commandMap.put(11, new CmdCreeperSpawn()); // Creeper Spawn
+        commandMap.put(12, new CmdCreeperKeep()); // Creeper Keep
+        commandMap.put(13, new CmdCreeperAreaDamage()); // Creeper Damage Player
+        commandMap.put(14, new CmdCreeperPlayerDamage()); // Creeper Damage Area
+        commandMap.put(15, new CmdTNTExplode()); // TNT Explode
+        commandMap.put(16, new CmdReload()); // Reload
+        // error messages
+        commandMap.put(20, new CmdPermissionsFail()); // Permission Error
+        commandMap.put(21, new CmdBoolError()); // Bool error
+        commandMap.put(22, new CmdMainHelp()); // others?
     }
 
-    // MESSY MESSY HATE HATE!!!1!!1one
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] split)
     {
+        boolean cmdResult = false;
+        boolean isPlayer = (sender instanceof Player);
+
+        // TODO: change this, make sure we have server compatable commands.
         if (!(sender instanceof Player))
         {
             return false;
@@ -75,197 +66,55 @@ public class KeepACreepCommand implements CommandExecutor
         Player player = (Player) sender;
 
         // if we kill the in-game commands, then we only want reload to work.
+        // TODO: make this work again. (whitelist commands possibly?)
         if (!dataFlags.instance().UseInGameCommands)
         {
-            // if we disabled the ingame commands, we only wan't reload to be avaliable.
-            if (split.length == 1 && split[0].equalsIgnoreCase("reload"))
-            {
-                if (!CheckIfHasPermission(player, PermissionNodes.Reload))
-                {
-                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("NoPermission", Messaging.language)));
-                }
-                else
-                {
-                    _plugin.settings.load();
-                    _plugin.loadFlags();
-                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ConfigReload", Messaging.language)));
-                }
-            }
-            else
-            {
-                sendFormattedUsageString(player, reloadOnlyUseageInfo);
-            }
-            return true;
-        }
-
-        // otherwise start the terible check to see what the player has input.
-        // TODO: clean up.
-        if (split.length == 1)
-        {
-            // send back a usage msg
-            // NOTE: atm we check each command manually in a giant if else. FIXME! convert commands to enum or something MUCH nicer
-            if (split[0].equalsIgnoreCase("creeper"))
-            {
-                sendFormattedUsageString(player, creeperUsageInfo);
-            }
-            else if(split[0].equalsIgnoreCase("tnt"))
-            {
-                sendFormattedUsageString(player, tntUsageInfo);
-            }
-            if (split[0].equalsIgnoreCase("reload"))
-            {
-                if (!CheckIfHasPermission(player, PermissionNodes.Reload))
-                {
-                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("NoPermission", Messaging.language)));
-                }
-                else
-                {
-                    _plugin.settings.load();
-                    _plugin.loadFlags();
-                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ConfigReload", Messaging.language)));
-                }
-            }
-            else
-            {
-                sendFormattedUsageString(player, useageInfo);
-            }
-        }
-        else if (split.length == 2)
-        {
-            // our current value
-            if((split[0].equalsIgnoreCase("creeper") && (split[1].equalsIgnoreCase("explode") || split[1].equalsIgnoreCase("keep") || split[1].equalsIgnoreCase("spawn")))
-                || (split[0].equalsIgnoreCase("tnt") && (split[1].equalsIgnoreCase("explode"))) )
-            {
-                // is this a creeper command?
-                if (split[0].equalsIgnoreCase("creeper"))
-                {
-                    if (split[1].equalsIgnoreCase("explode"))
-                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueCheck", Messaging.language).replace("%1%", "ExplodeCreepers").replace("%2%", _plugin.settings.getString("Flags.ExplodeCreepers"))));
-                    if (split[1].equalsIgnoreCase("keep"))
-                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueCheck", Messaging.language).replace("%1%", "KeepCreepers").replace("%2%", _plugin.settings.getString("Flags.KeepCreepers"))));
-                    if (split[1].equalsIgnoreCase("spawn"))
-                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueCheck", Messaging.language).replace("%1%", "SpawnCreepers").replace("%2%", _plugin.settings.getString("Flags.SpawnCreepers"))));
-                }
-                // then we must be a tnt command (specifically the explode as there isn't any others.)
-                else
-                {
-                    player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueCheck", Messaging.language).replace("%1%", "ExplodeTNT").replace("%2%", _plugin.settings.getString("Flags.ExplodeTNT"))));
-                }
-            }
-            else if(split[0].equalsIgnoreCase("creeper"))
-                sendFormattedUsageString(player, creeperUsageInfo);
-            else if(split[0].equalsIgnoreCase("tnt"))
-                sendFormattedUsageString(player, tntUsageInfo);
-            else
-                sendFormattedUsageString(player, useageInfo);
-
-        }
-        else if (split.length == 3)
-        {
             
-            if (split[0].equalsIgnoreCase("creeper"))
-            {
-                if(split[1].equalsIgnoreCase("explode"))
-                {
-                    String newValue = this.getValue(split[2].toLowerCase());
-
-                    if (!CheckIfHasPermission(player, PermissionNodes.ExplodeCreeper))
-                    {
-                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("NoPermission", Messaging.language)));
-                    }
-                    else if(!newValue.equals(""))
-                    {
-                        setProperty("Flags.ExplodeCreepers", newValue);
-                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueResult", Messaging.language).replace("%1%", split[1].toLowerCase()+ " " +split[0].toLowerCase()).replace("%2%", newValue)));
-                    }
-                    else
-                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueHint", Messaging.language)));
-                }
-                else if(split[1].equalsIgnoreCase("spawn"))
-                {
-                    String newValue = this.getValue(split[2].toLowerCase());
-
-                    if (!CheckIfHasPermission(player, PermissionNodes.SpawnCreeper))
-                    {
-                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("NoPermission", Messaging.language)));
-                    }
-                    else if(!newValue.equals(""))
-                    {
-                        setProperty("Flags.SpawnCreepers", newValue);
-                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueResult", Messaging.language).replace("%1%", split[1].toLowerCase()+ " " +split[0].toLowerCase()).replace("%2%", newValue)));
-                    }
-                    else
-                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueHint", Messaging.language)));
-                }
-                else if(split[1].equalsIgnoreCase("keep"))
-                {
-                    String newValue = this.getValue(split[2].toLowerCase());
-
-                    if (!CheckIfHasPermission(player, PermissionNodes.KeepCreeper))
-                    {
-                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("NoPermission", Messaging.language)));
-                    }
-                    else if(!newValue.equals(""))
-                    {
-                        setProperty("Flags.KeepCreepers", newValue);
-                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueResult", Messaging.language).replace("%1%", split[1].toLowerCase()+ " " +split[0].toLowerCase()).replace("%2%", newValue)));
-                    }
-                    else
-                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueHint", Messaging.language)));
-                }
-                else
-                {
-                    sendFormattedUsageString(player, creeperUsageInfo);
-                }
-            }
-            
-            if (split[0].equalsIgnoreCase("tnt"))
-            {
-                if (split[1].equalsIgnoreCase("explode"))
-                {
-                    String newValue = this.getValue(split[2].toLowerCase());
-                    
-                    if (!CheckIfHasPermission(player, PermissionNodes.ExplodeTNT))
-                    {
-                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("NoPermission", Messaging.language)));
-                    }
-                    else if (!newValue.equals(""))
-                    {
-                        setProperty("Flags.ExplodeTNT", newValue);
-                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueResult", Messaging.language).replace("%1%", split[1].toLowerCase()+ " " +split[0].toLowerCase()).replace("%2%", newValue)));
-                    }
-                    else
-                        player.sendMessage(Messaging.parse(Messaging.msgPrefix + Messaging.msgColour + Locale.instance().getLocalisedString("ValueHint", Messaging.language)));
-                }
-                else
-                {
-                    sendFormattedUsageString(player, tntUsageInfo);
-                }
-            }
         }
-        else
-        {
-            sendFormattedUsageString(player, useageInfo);
-        }
-        return true;
+
+        int[] parseResult = mainParser.parseCommand(sender, command.getName(), split, !isPlayer);
+        
+        if (parseResult[0] != -1 && commandMap.containsKey(parseResult[0]))
+            cmdResult = commandMap.get(parseResult[0]).runCommand(sender, command, label, split);
+        if (!cmdResult && parseResult[1] != -1 && commandMap.containsKey(parseResult[1]))
+            cmdResult = commandMap.get(parseResult[1]).runCommand(sender, command, label, split);
+
+        return cmdResult;
     }
+}
 
-    private void setProperty(String Key, String value)
+// our base command class.
+// all commands are derived from this.
+// TODO: move this out of the command class into it's own?
+class ExecutableCommand
+{
+    // grab a copy of the main plugin class in case we need it.
+    KeepACreep _plugin;
+    
+    public ExecutableCommand(KeepACreep plugin)
     {
-        boolean boolValue = false;
-        if (value.equals("true"))
-            boolValue = true;
-        _plugin.settings.setProperty(Key, boolValue);
-        _plugin.loadFlags();
-        _plugin.settings.save();
+        _plugin = plugin;
     }
 
+    public ExecutableCommand()
+    {
+        _plugin = KeepACreep.getMainInstance();
+    }
+
+    // this is the method we want to override.
+    // it's basically a smaller, modular version of the onCommand but i control it. :P
+    boolean runCommand(CommandSender sender, Command command, String label, String[] split)
+    {
+        return false;
+    }
+
+    // helper commands
     /**
      * small helper function to get a t or f result. "" is bad input.
      * @param value - input string
      * @return 'true', 'false' or "" value
      */
-    private String getValue(String value)
+    protected String getBoolValue(String value)
     {
         if (value.equals("t"))
             value = "true";
@@ -274,37 +123,400 @@ public class KeepACreepCommand implements CommandExecutor
 
         if (value.equals("true") || value.equals("false"))
             return value;
-        
+
         return "";
     }
 
-    private boolean CheckIfHasPermission(Player player, String Node)
+    /**
+     * sets a boolean property in the config.
+     * @param Key
+     * @param value
+     */
+    protected void setBoolProperty(String Key, String value)
     {
-        if (KeepACreep.permissionHandler != null && dataFlags.instance().UsePermissions)
-            return KeepACreep.permissionHandler.has(player, Node);
-        else if (player.isOp())
-            return true;
-        return false;
-    }
-
-    private void sendFormattedUsageString(Player player, String[] usageArray)
-    {
-        StringBuilder fullString = new StringBuilder(Messaging.msgPrefix);
-        for (String i : usageArray)
-        {
-            player.sendMessage(Messaging.parse(fullString.append(Messaging.msgColour).append(" ").append(i).toString()));
-            fullString.setLength(0);
-        }
+        boolean boolValue = false;
+        if (value.equals("true"))
+            boolValue = true;
+        _plugin.settings.setProperty(Key, boolValue);
+        reloadAndSaveSettings();
     }
 
     /**
-     * Helper function which returns an id of the function we want to use.
-     * @param command - the split param list
-     * @return - command id.
-     * TODO: actually implement this. possibly have string lookup table?
+     * does what it says it does. :)
      */
-    private int getCommandID(String[] command)
+    private void reloadAndSaveSettings()
     {
-        return 0;
+        _plugin.loadFlags();
+        _plugin.settings.save();
+    }
+}
+
+// ID 0
+class CmdMainHelp extends ExecutableCommand
+{
+    // Main help message if we've completely fucked up.
+    // TODO: localize this
+    private final String[] useageInfo = {
+                                         "Commands:",
+                                         "    /kac reload",
+                                         "    /kac creeper",
+                                         "    /kac tnt"
+                                        };
+    @Override
+    boolean runCommand(CommandSender sender, Command command, String label, String[] split)
+    {
+        // only send the message to the player.
+        // TODO: server specific msg
+        if (!(sender instanceof Player))
+            return true;
+
+        Player player = (Player) sender;
+
+        // we do this so the first line has the [pluginName] at the beginning.
+        StringBuilder fullString = new StringBuilder(Messaging.msgPrefix);
+        for (String i : useageInfo)
+        {
+            // Me no likey. Minecraft Chat box doesn't support newlines.
+            player.sendMessage(Messaging.parse(fullString.append(Messaging.msgColour).append(" ").append(i).toString()));
+            fullString.setLength(0);
+        }
+        
+        return true;
+    }
+}
+
+
+// ID 1
+class CmdReloadOnlyHelp extends ExecutableCommand
+{
+    // Main help message if we've completely fucked up.
+    // TODO: localize this
+    private final String[] useageInfo = {
+                                         "Commands:",
+                                         "    /kac reload"
+                                        };
+    @Override
+    boolean runCommand(CommandSender sender, Command command, String label, String[] split)
+    {
+        // only send the message to the player.
+        // TODO: server specific msg
+        if (!(sender instanceof Player))
+            return true;
+
+        Player player = (Player) sender;
+
+        // we do this so the first line has the [pluginName] at the beginning.
+        StringBuilder fullString = new StringBuilder(Messaging.msgPrefix);
+        for (String i : useageInfo)
+        {
+            // Me no likey. Minecraft Chat box doesn't support newlines.
+            player.sendMessage(Messaging.parse(fullString.append(Messaging.msgColour).append(" ").append(i).toString()));
+            fullString.setLength(0);
+        }
+
+        return true;
+    }
+}
+
+// ID 2
+class CmdCreeperHelp extends ExecutableCommand
+{
+    // Main help message if we've completely fucked up.
+    // TODO: localize this
+    private final String[] useageInfo = {
+                                        "Creeper Specific Commands:",
+                                        "    /kac creeper explode [t/f]",
+                                        "    /kac creeper spawn [t/f]",
+                                        "    /kac creeper keep [t/f]",
+                                        "    /kac creeper damageplayer [t/f]",
+                                        "    /kac creeper damagearea [t/f]"
+                                        };
+    @Override
+    boolean runCommand(CommandSender sender, Command command, String label, String[] split)
+    {
+        // only send the message to the player.
+        // TODO: server specific msg
+        if (!(sender instanceof Player))
+            return true;
+
+        Player player = (Player) sender;
+
+        // we do this so the first line has the [pluginName] at the beginning.
+        StringBuilder fullString = new StringBuilder(Messaging.msgPrefix);
+        for (String i : useageInfo)
+        {
+            // Me no likey. Minecraft Chat box doesn't support newlines.
+            player.sendMessage(Messaging.parse(fullString.append(Messaging.msgColour).append(" ").append(i).toString()));
+            fullString.setLength(0);
+        }
+
+        return true;
+    }
+}
+
+
+// ID 3
+class CmdTntHelp extends ExecutableCommand
+{
+    // Main help message if we've completely fucked up.
+    // TODO: localize this
+    private final String[] useageInfo = {
+                                        "TNT Specific Commands:",
+                                        "    /kac tnt explode [t/f]"
+                                        };
+    @Override
+    boolean runCommand(CommandSender sender, Command command, String label, String[] split)
+    {
+        // only send the message to the player.
+        // TODO: server specific msg
+        if (!(sender instanceof Player))
+            return true;
+
+        Player player = (Player) sender;
+
+        // we do this so the first line has the [pluginName] at the beginning.
+        StringBuilder fullString = new StringBuilder(Messaging.msgPrefix);
+        for (String i : useageInfo)
+        {
+            // Me no likey. Minecraft Chat box doesn't support newlines.
+            player.sendMessage(Messaging.parse(fullString.append(Messaging.msgColour).append(" ").append(i).toString()));
+            fullString.setLength(0);
+        }
+
+        return true;
+    }
+}
+
+// ID 20
+class CmdPermissionsFail extends ExecutableCommand
+{
+    @Override
+    boolean runCommand(CommandSender sender, Command command, String label, String[] split)
+    {
+        // only send the message to the player.
+        if (sender instanceof Player)
+            Messaging.sendColouredLocalisedPlayerMessage((Player)sender, "NoPermission");
+        else
+            Messaging.sendLocalisedServerMessage(sender, "NoPermission");
+
+        return true;
+    }
+}
+
+// ID 4
+class CmdBoolInfo extends ExecutableCommand
+{
+    static HashMap<String, String> stringLookup = null;
+
+    public CmdBoolInfo()
+    {
+        super();
+
+        if (stringLookup == null)
+        {
+            // TODO: add any others we want here.
+            stringLookup = new HashMap<String, String>();
+            stringLookup.put("creeperspawn", "SpawnCreepers");
+            stringLookup.put("creeperexplode", "ExplodeCreepers");
+            stringLookup.put("creeperkeep", "KeepCreepers");
+            stringLookup.put("creeperdamageplayer", "KeepCreepers");
+            stringLookup.put("creeperdamagearea", "KeepCreepers");
+            stringLookup.put("tntexplode", "ExplodeTNT");
+            //stringLookup.put("commandlower", "Upper");
+        }
+    }
+
+    @Override
+    boolean runCommand(CommandSender sender, Command command, String label, String[] split)
+    {
+        // dirty, yes i know.
+        String message = stringLookup.get(split[0]+split[1]);
+        message = Locale.instance().getLocalisedString("ValueCheck", Messaging.language).replace("%1%", message).replace("%2%", _plugin.settings.getString("Flags."+message));
+
+        // only send the message to the player.
+        if (sender instanceof Player)
+            Messaging.sendColouredPlayerMessage((Player)sender, message);
+        else
+            Messaging.sendServerMessage(sender, message);
+
+        return true;
+    }
+}
+
+// ID 21
+class CmdBoolError extends ExecutableCommand
+{
+    @Override
+    boolean runCommand(CommandSender sender, Command command, String label, String[] split)
+    {
+        // only send the message to the player.
+        if (sender instanceof Player)
+            Messaging.sendColouredLocalisedPlayerMessage((Player)sender, "ValueHint");
+        else
+            Messaging.sendLocalisedServerMessage(sender, "ValueHint");
+
+        return true;
+    }
+}
+
+class CmdReload extends ExecutableCommand
+{
+    @Override
+    boolean runCommand(CommandSender sender, Command command, String label, String[] split)
+    {
+        _plugin.settings.load();
+        _plugin.loadFlags();
+        
+        // only send the message to the player.
+        if (sender instanceof Player)
+            Messaging.sendColouredLocalisedPlayerMessage((Player)sender, "ConfigReload");
+        else
+            Messaging.sendLocalisedServerMessage(sender, "ConfigReload");
+
+        return true;
+    }
+}
+
+class CmdCreeperExplode extends ExecutableCommand
+{
+    @Override
+    boolean runCommand(CommandSender sender, Command command, String label, String[] split)
+    {
+        String newValue = getBoolValue(split[2].toLowerCase());
+
+        // not a bool value? 
+        if(newValue.equals(""))
+            return false;
+
+        setBoolProperty("Flags.ExplodeCreepers", newValue);
+
+        String message = Locale.instance().getLocalisedString("ValueResult", Messaging.language).replace("%1%", split[1].toLowerCase()+ " " +split[0].toLowerCase()).replace("%2%", newValue);
+        // only send the message to the player.
+        if (sender instanceof Player)
+            Messaging.sendColouredPlayerMessage((Player)sender, message);
+        else
+            Messaging.sendServerMessage(sender, message);
+
+        return true;
+    }
+}
+
+class CmdCreeperSpawn extends ExecutableCommand
+{
+    @Override
+    boolean runCommand(CommandSender sender, Command command, String label, String[] split)
+    {
+        String newValue = getBoolValue(split[2].toLowerCase());
+
+        // not a bool value?
+        if(newValue.equals(""))
+            return false;
+
+        setBoolProperty("Flags.SpawnCreepers", newValue);
+
+        String message = Locale.instance().getLocalisedString("ValueResult", Messaging.language).replace("%1%", split[1].toLowerCase()+ " " +split[0].toLowerCase()).replace("%2%", newValue);
+        // only send the message to the player.
+        if (sender instanceof Player)
+            Messaging.sendColouredPlayerMessage((Player)sender, message);
+        else
+            Messaging.sendServerMessage(sender, message);
+
+        return true;
+    }
+}
+
+class CmdCreeperKeep extends ExecutableCommand
+{
+    @Override
+    boolean runCommand(CommandSender sender, Command command, String label, String[] split)
+    {
+        String newValue = getBoolValue(split[2].toLowerCase());
+
+        // not a bool value?
+        if(newValue.equals(""))
+            return false;
+
+        setBoolProperty("Flags.KeepCreepers", newValue);
+
+        String message = Locale.instance().getLocalisedString("ValueResult", Messaging.language).replace("%1%", split[1].toLowerCase()+ " " +split[0].toLowerCase()).replace("%2%", newValue);
+        // only send the message to the player.
+        if (sender instanceof Player)
+            Messaging.sendColouredPlayerMessage((Player)sender, message);
+        else
+            Messaging.sendServerMessage(sender, message);
+
+        return true;
+    }
+}
+
+class CmdCreeperPlayerDamage extends ExecutableCommand
+{
+    @Override
+    boolean runCommand(CommandSender sender, Command command, String label, String[] split)
+    {
+        String newValue = getBoolValue(split[2].toLowerCase());
+
+        // not a bool value?
+        if(newValue.equals(""))
+            return false;
+
+        setBoolProperty("Flags.ExplodeCreepers", newValue);
+
+        String message = Locale.instance().getLocalisedString("ValueResult", Messaging.language).replace("%1%", split[1].toLowerCase()+ " " +split[0].toLowerCase()).replace("%2%", newValue);
+        // only send the message to the player.
+        if (sender instanceof Player)
+            Messaging.sendColouredPlayerMessage((Player)sender, message);
+        else
+            Messaging.sendServerMessage(sender, message);
+
+        return true;
+    }
+}
+
+class CmdCreeperAreaDamage extends ExecutableCommand
+{
+    @Override
+    boolean runCommand(CommandSender sender, Command command, String label, String[] split)
+    {
+        String newValue = getBoolValue(split[2].toLowerCase());
+
+        // not a bool value?
+        if(newValue.equals(""))
+            return false;
+
+        setBoolProperty("Flags.ExplodeCreepers", newValue);
+
+        String message = Locale.instance().getLocalisedString("ValueResult", Messaging.language).replace("%1%", split[1].toLowerCase()+ " " +split[0].toLowerCase()).replace("%2%", newValue);
+        // only send the message to the player.
+        if (sender instanceof Player)
+            Messaging.sendColouredPlayerMessage((Player)sender, message);
+        else
+            Messaging.sendServerMessage(sender, message);
+
+        return true;
+    }
+}
+
+class CmdTNTExplode extends ExecutableCommand
+{
+    @Override
+    boolean runCommand(CommandSender sender, Command command, String label, String[] split)
+    {
+        String newValue = getBoolValue(split[2].toLowerCase());
+
+        // not a bool value?
+        if(newValue.equals(""))
+            return false;
+
+        setBoolProperty("Flags.ExplodeTNT", newValue);
+
+        String message = Locale.instance().getLocalisedString("ValueResult", Messaging.language).replace("%1%", split[1].toLowerCase()+ " " +split[0].toLowerCase()).replace("%2%", newValue);
+        // only send the message to the player.
+        if (sender instanceof Player)
+            Messaging.sendColouredPlayerMessage((Player)sender, message);
+        else
+            Messaging.sendServerMessage(sender, message);
+
+        return true;
     }
 }
